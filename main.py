@@ -1,4 +1,22 @@
 import math
+# =========================================================
+# NOUVELLE MECANIQUE DE TACTIQUE SIMPLIFIEE (6 focus)
+# Import des constantes et fonctions depuis tactics_v2.py
+# =========================================================
+try:
+    from tactics_v2 import (
+        ATTACK_FOCUS_OPTIONS, DEFENSE_FOCUS_OPTIONS,
+        ATTACK_DEFENSE_MATRIX, FOCUS_WEIGHTS,
+        ATTACK_FOCUS_BONUSES, DEFENSE_FOCUS_BONUSES,
+        ATTACK_FOCUS_TENDENCY_BONUSES, DEFENSE_FOCUS_TENDENCY_BONUSES,
+        calculate_tactic_efficiency, get_attack_bonuses, get_defense_bonuses,
+        get_tendency_bonuses
+    )
+except ImportError:
+    # Fallback si tactics_v2.py n existe pas
+    ATTACK_FOCUS_OPTIONS = DEFENSE_FOCUS_OPTIONS = []
+    ATTACK_DEFENSE_MATRIX = FOCUS_WEIGHTS = {}
+    ATTACK_FOCUS_BONUSES = DEFENSE_FOCUS_BONUSES = {}
 import random
 from itertools import combinations, permutations
 
@@ -174,6 +192,13 @@ DEFAULT_TACTICS = {
     "transitionDefense": "Équilibré",
     "defensiveRebound": "Équilibré",
     "foulAggression": "Normale",
+    # Nouveau systeme (6 focus)
+    "attackFocus1": "Jeu rapide",
+    "attackFocus2": "Tir à 3 points",
+    "attackFocus3": "Jeu intérieur",
+    "defenseFocus1": "Défense intérieur",
+    "defenseFocus2": "Agressivité extérieur",
+    "defenseFocus3": "Rebond défensif",
 }
 
 
@@ -1277,6 +1302,15 @@ def choose_shot(player, action, tactics):
         return 3, "perimeter"
     three = (25 + tendency(player, "three") * 0.96) * 1.10
     two = 20 + tendency(player, "paint") * 0.38 + tendency(player, "midrange") * 0.24
+    
+    # =========================================================
+    # NOUVELLE MECANIQUE: Appliquer les bonus de tendance tactique
+    # =========================================================
+    if hasattr(player, '_team') and hasattr(player._team, '_tendency_bonuses'):
+        tb = player._team._tendency_bonuses
+        three += tb.get("three", 0) * 0.3
+        two += tb.get("paint", 0) * 0.15 + tb.get("midrange", 0) * 0.15
+    
     if tactics.get("offenseStyle") == "Adresse extérieure": three *= 1.15
     if tactics.get("threePointFocus") == "Accentué": three *= 1.20
     if tactics.get("threePointFocus") == "Limité": three *= 0.67
@@ -1331,6 +1365,26 @@ def shooting_chance(attacker, defender, shot_type, shot_area, tactics, assisted,
         else: chance -= perimeter_defense(help_defender) * 0.009
     if tactics.get("offenseStyle") == "Adresse extérieure" and shot_area == "perimeter": chance += 1.4
     if tactics.get("offenseStyle") == "Jeu intérieur" and shot_area == "paint": chance += 1.8
+    # =========================================================
+    # NOUVELLE MECANIQUE: Appliquer les bonus tactiques
+    # =========================================================
+    if hasattr(attacking_team, '_tactic_efficiency'):
+        chance *= attacking_team._tactic_efficiency
+    if hasattr(attacking_team, '_attr_bonuses'):
+        ab = attacking_team._attr_bonuses
+        p += ab.get("outside_scoring", 0)
+        i += ab.get("inside_scoring", 0)
+        ath += ab.get("athleticism", 0)
+        play += ab.get("playmaking", 0)
+    if hasattr(attacking_team, '_tendency_bonuses'):
+        tb = attacking_team._tendency_bonuses
+        if shot_type == 3:
+            chance += tb.get("three", 0) * 0.05 + tb.get("catch_and_shoot", 0) * 0.03
+        elif shot_area == "paint":
+            chance += tb.get("paint", 0) * 0.05 + tb.get("post_up", 0) * 0.03
+        elif shot_area == "midrange":
+            chance += tb.get("midrange", 0) * 0.05
+    
     chance -= attacker.fatigue * 0.06
     return max(minimum, min(maximum, chance))
 
@@ -1381,6 +1435,14 @@ def foul_probability(attacker, defender, shot_area, defense_tactics, action):
     # Joueur en "foul trouble" : il joue plus prudemment.
     if defender.fouls >= 5: chance *= 0.55
     elif defender.fouls >= 4: chance *= 0.75
+    # =========================================================
+    # NOUVELLE MECANIQUE: Appliquer les bonus tactiques sur les fautes
+    # =========================================================
+    if hasattr(defending_team, '_attr_bonuses'):
+        db = defending_team._attr_bonuses
+        chance += db.get("defense", 0) * 0.0005
+        chance += db.get("athleticism", 0) * 0.0003
+    
     return max(0.03, min(0.34, chance))
 
 
@@ -1399,6 +1461,17 @@ def offensive_rebound_chance(attacking_team, defending_team, tactics):
     if tactics.get("offensiveRebound") == "Agressif": base += 8
     elif tactics.get("offensiveRebound") == "Prudent": base -= 8
     dt = TacticalModel(tactics)
+    # =========================================================
+    # NOUVELLE MECANIQUE: Appliquer les bonus tactiques sur les rebonds
+    # =========================================================
+    if hasattr(attacking_team, '_attr_bonuses'):
+        ab = attacking_team._attr_bonuses
+        base += ab.get("rebounding", 0) * 0.15
+        base += ab.get("athleticism", 0) * 0.08
+    if hasattr(defending_team, '_attr_bonuses'):
+        db = defending_team._attr_bonuses
+        base -= db.get("rebounding", 0) * 0.15
+    
     return max(12, min(42, base + dt.defense.get("offensive_rebound", 0) * 5))
 
 
@@ -1454,6 +1527,35 @@ def simulate_possession(attacking_team, defending_team, tactics, defending_tacti
     Aucune prise à deux n'est utilisée.
     """
     tactics = normalize_tactics(tactics); defending_tactics = normalize_tactics(defending_tactics)
+    
+    # =========================================================
+    # NOUVELLE MECANIQUE: Calcul des bonus tactiques (6 focus)
+    # =========================================================
+    attack_focuses = [
+        tactics.get("attackFocus1"),
+        tactics.get("attackFocus2"),
+        tactics.get("attackFocus3")
+    ]
+    defense_focuses = [
+        defending_tactics.get("defenseFocus1"),
+        defending_tactics.get("defenseFocus2"),
+        defending_tactics.get("defenseFocus3")
+    ]
+    
+    attack_focuses = [f for f in attack_focuses if f in ATTACK_FOCUS_OPTIONS]
+    defense_focuses = [f for f in defense_focuses if f in DEFENSE_FOCUS_OPTIONS]
+    
+    tactic_efficiency = calculate_tactic_efficiency(attack_focuses, defense_focuses)
+    attack_attr_bonuses = get_attack_bonuses(attack_focuses)
+    defense_attr_bonuses = get_defense_bonuses(defense_focuses)
+    attack_tendency_bonuses, defense_tendency_bonuses = get_tendency_bonuses(attack_focuses, defense_focuses)
+    
+    attacking_team._tactic_efficiency = tactic_efficiency
+    attacking_team._attr_bonuses = attack_attr_bonuses
+    attacking_team._tendency_bonuses = attack_tendency_bonuses
+    defending_team._tactic_efficiency = tactic_efficiency
+    defending_team._attr_bonuses = defense_attr_bonuses
+    defending_team._tendency_bonuses = defense_tendency_bonuses
     action = choose_offensive_action(attacking_team, tactics, score_for, score_against, clock_remaining, defending_tactics)
     attacker, screener = choose_action_players(attacking_team, action, tactics)
 
@@ -1625,6 +1727,15 @@ def apply_minute_end(team):
             recover_fatigue(p)
 
 
+
+
+def init_player_team_references(team):
+    """Initialise la référence _team pour chaque joueur de l équipe.
+    Cela permet d'accéder aux bonus tactiques depuis les fonctions de calcul.
+    """
+    for player in team.roster:
+        player._team = team
+
 def reset_quarter_fouls():
     return 0, 0
 
@@ -1742,6 +1853,12 @@ def simulate_game(team1, team2, rotation1, rotation2=None,
         rotation2 = build_default_rotation_minutes(team2.roster, team2.starters)
     set_rotation_plan(team1, rotation1); set_rotation_plan(team2, rotation2)
     reset_game_stats(team1); reset_game_stats(team2)
+    
+    # =========================================================
+    # NOUVELLE MECANIQUE: Initialiser les références _team
+    # =========================================================
+    init_player_team_references(team1)
+    init_player_team_references(team2)
     team1._quarter_scores = [0, 0, 0, 0]; team2._quarter_scores = [0, 0, 0, 0]
 
     teams = (team1, team2)
