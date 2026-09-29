@@ -1,686 +1,141 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBA Manager 2 - Tactiques</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            color: #e0e0e0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            border-bottom: 2px solid #0f3460;
-        }
-
-        header h1 {
-            color: #e94560;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-
-        header p {
-            color: #a0a0a0;
-            font-size: 1.1em;
-        }
-
-        .tactics-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-
-        .tactics-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .tactics-section h2 {
-            color: #e94560;
-            margin-bottom: 20px;
-            font-size: 1.4em;
-            text-align: center;
-            border-bottom: 1px solid rgba(233, 69, 96, 0.3);
-            padding-bottom: 10px;
-        }
-
-        .focus-selector {
-            margin-bottom: 20px;
-        }
-
-        .focus-selector label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #c0c0c0;
-            font-size: 0.95em;
-        }
-
-        .focus-selector select {
-            width: 100%;
-            padding: 12px 15px;
-            border-radius: 8px;
-            border: 1px solid #0f3460;
-            background: rgba(255, 255, 255, 0.05);
-            color: #e0e0e0;
-            font-size: 1em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .focus-selector select:hover,
-        .focus-selector select:focus {
-            border-color: #e94560;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.2);
-        }
-
-        .focus-selector select option {
-            background: #1a1a2e;
-            color: #e0e0e0;
-        }
-
-        .focus-selector .priority {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            margin-left: 8px;
-            font-weight: bold;
-        }
-
-        .priority-1 { background: #e94560; color: white; }
-        .priority-2 { background: #4a90e2; color: white; }
-        .priority-3 { background: #50c878; color: white; }
-
-        .efficiency-display {
-            grid-column: 1 / -1;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .efficiency-display h3 {
-            color: #e94560;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-        }
-
-        .efficiency-value {
-            font-size: 2.5em;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        .efficiency-good { color: #50c878; }
-        .efficiency-neutral { color: #ffd166; }
-        .efficiency-bad { color: #e94560; }
-
-        .efficiency-description {
-            font-size: 1.1em;
-            color: #a0a0a0;
-            margin-top: 10px;
-        }
-
-        .matrix-container {
-            grid-column: 1 / -1;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: 30px;
-        }
-
-        .matrix-container h3 {
-            color: #e94560;
-            margin-bottom: 20px;
-            font-size: 1.3em;
-            text-align: center;
-        }
-
-        .matrix-grid {
-            display: grid;
-            grid-template-columns: 120px repeat(6, 1fr);
-            gap: 5px;
-            overflow-x: auto;
-        }
-
-        .matrix-header {
-            text-align: center;
-            padding: 10px;
-            font-weight: 600;
-            color: #a0a0a0;
-            font-size: 0.85em;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 4px;
-        }
-
-        .matrix-cell {
-            text-align: center;
-            padding: 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 0.9em;
-            min-width: 60px;
-        }
-
-        .matrix-cell.good { background: rgba(80, 200, 120, 0.2); color: #50c878; }
-        .matrix-cell.neutral { background: rgba(255, 209, 102, 0.2); color: #ffd166; }
-        .matrix-cell.bad { background: rgba(233, 69, 96, 0.2); color: #e94560; }
-
-        .actions {
-            grid-column: 1 / -1;
-            text-align: center;
-            margin-top: 30px;
-        }
-
-        .btn {
-            padding: 12px 30px;
-            border-radius: 8px;
-            border: none;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 0 10px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #e94560 0%, #c73e54 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: #e0e0e0;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .info-box {
-            grid-column: 1 / -1;
-            background: rgba(74, 144, 226, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid rgba(74, 144, 226, 0.3);
-            margin-top: 30px;
-        }
-
-        .info-box h3 {
-            color: #4a90e2;
-            margin-bottom: 15px;
-        }
-
-        .info-box ul {
-            line-height: 1.8;
-            color: #c0c0c0;
-        }
-
-        .info-box li {
-            margin-bottom: 8px;
-        }
-
-        @media (max-width: 768px) {
-            .tactics-container {
-                grid-template-columns: 1fr;
-            }
-
-            .matrix-grid {
-                grid-template-columns: 100px repeat(3, 1fr);
-            }
-
-            header h1 {
-                font-size: 1.8em;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NBA Manager</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>⚡ NBA MANAGER 2 - Tactiques</h1>
-            <p>Nouveau système simplifié avec 6 focus stratégiques</p>
-        </header>
-
-        <div class="tactics-container">
-            <!-- Section Attaque -->
-            <div class="tactics-section">
-                <h2>⚔️ Tactiques d'Attaque</h2>
-                <p style="text-align: center; color: #a0a0a0; margin-bottom: 20px; font-size: 0.9em;">
-                    Sélectionnez 3 focus par ordre d'importance
-                </p>
-                
-                <div class="focus-selector">
-                    <label>
-                        1. Focus Principal
-                        <span class="priority priority-1">PRIORITÉ 50%</span>
-                    </label>
-                    <select id="attackFocus1">
-                        <option value="Tir à 3 points">Tir à 3 points</option>
-                        <option value="Jeu intérieur">Jeu intérieur</option>
-                        <option value="Jeu rapide">Jeu rapide</option>
-                        <option value="Jeu posé">Jeu posé</option>
-                        <option value="Rebond offensif">Rebond offensif</option>
-                        <option value="Contre-attaque">Contre-attaque</option>
-                    </select>
-                </div>
-
-                <div class="focus-selector">
-                    <label>
-                        2. Focus Secondaire
-                        <span class="priority priority-2">PRIORITÉ 30%</span>
-                    </label>
-                    <select id="attackFocus2">
-                        <option value="Jeu intérieur">Jeu intérieur</option>
-                        <option value="Tir à 3 points">Tir à 3 points</option>
-                        <option value="Jeu rapide">Jeu rapide</option>
-                        <option value="Jeu posé">Jeu posé</option>
-                        <option value="Rebond offensif">Rebond offensif</option>
-                        <option value="Contre-attaque">Contre-attaque</option>
-                    </select>
-                </div>
-
-                <div class="focus-selector">
-                    <label>
-                        3. Focus Tertiaire
-                        <span class="priority priority-3">PRIORITÉ 20%</span>
-                    </label>
-                    <select id="attackFocus3">
-                        <option value="Jeu posé">Jeu posé</option>
-                        <option value="Tir à 3 points">Tir à 3 points</option>
-                        <option value="Jeu intérieur">Jeu intérieur</option>
-                        <option value="Jeu rapide">Jeu rapide</option>
-                        <option value="Rebond offensif">Rebond offensif</option>
-                        <option value="Contre-attaque">Contre-attaque</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Section Défense -->
-            <div class="tactics-section">
-                <h2>🛡️ Tactiques de Défense</h2>
-                <p style="text-align: center; color: #a0a0a0; margin-bottom: 20px; font-size: 0.9em;">
-                    Sélectionnez 3 focus par ordre d'importance
-                </p>
-                
-                <div class="focus-selector">
-                    <label>
-                        1. Focus Principal
-                        <span class="priority priority-1">PRIORITÉ 50%</span>
-                    </label>
-                    <select id="defenseFocus1">
-                        <option value="Défense intérieur">Défense intérieur</option>
-                        <option value="Agressivité extérieur">Agressivité extérieur</option>
-                        <option value="Rebond défensif">Rebond défensif</option>
-                        <option value="Défense de zone">Défense de zone</option>
-                        <option value="Défense H2H">Défense H2H</option>
-                        <option value="Contre">Contre</option>
-                    </select>
-                </div>
-
-                <div class="focus-selector">
-                    <label>
-                        2. Focus Secondaire
-                        <span class="priority priority-2">PRIORITÉ 30%</span>
-                    </label>
-                    <select id="defenseFocus2">
-                        <option value="Agressivité extérieur">Agressivité extérieur</option>
-                        <option value="Défense intérieur">Défense intérieur</option>
-                        <option value="Rebond défensif">Rebond défensif</option>
-                        <option value="Défense de zone">Défense de zone</option>
-                        <option value="Défense H2H">Défense H2H</option>
-                        <option value="Contre">Contre</option>
-                    </select>
-                </div>
-
-                <div class="focus-selector">
-                    <label>
-                        3. Focus Tertiaire
-                        <span class="priority priority-3">PRIORITÉ 20%</span>
-                    </label>
-                    <select id="defenseFocus3">
-                        <option value="Rebond défensif">Rebond défensif</option>
-                        <option value="Défense intérieur">Défense intérieur</option>
-                        <option value="Agressivité extérieur">Agressivité extérieur</option>
-                        <option value="Défense de zone">Défense de zone</option>
-                        <option value="Défense H2H">Défense H2H</option>
-                        <option value="Contre">Contre</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Affichage de l'efficacité -->
-            <div class="efficiency-display">
-                <h3>📊 Efficacité Tactique</h3>
-                <div class="efficiency-value" id="efficiencyValue">1.00x</div>
-                <div class="efficiency-description" id="efficiencyDescription">
-                    Combinaison neutre
-                </div>
-            </div>
-
-            <!-- Matrice d'interaction -->
-            <div class="matrix-container">
-                <h3>🎯 Matrice d'Interaction (Attaque vs Défense)</h3>
-                <div class="matrix-grid">
-                    <div class="matrix-header"></div>
-                    <div class="matrix-header">Défense intérieur</div>
-                    <div class="matrix-header">Agressivité extérieur</div>
-                    <div class="matrix-header">Rebond défensif</div>
-                    <div class="matrix-header">Défense de zone</div>
-                    <div class="matrix-header">Défense H2H</div>
-                    <div class="matrix-header">Contre</div>
-                    
-                    <div class="matrix-header">Tir à 3 points</div>
-                    <div class="matrix-cell good">1.8x</div>
-                    <div class="matrix-cell bad">0.6x</div>
-                    <div class="matrix-cell neutral">1.0x</div>
-                    <div class="matrix-cell good">1.2x</div>
-                    <div class="matrix-cell neutral">1.0x</div>
-                    <div class="matrix-cell bad">0.7x</div>
-                    
-                    <div class="matrix-header">Jeu intérieur</div>
-                    <div class="matrix-cell bad">0.7x</div>
-                    <div class="matrix-cell good">1.6x</div>
-                    <div class="matrix-cell neutral">1.1x</div>
-                    <div class="matrix-cell bad">0.9x</div>
-                    <div class="matrix-cell good">1.2x</div>
-                    <div class="matrix-cell bad">0.5x</div>
-                    
-                    <div class="matrix-header">Jeu rapide</div>
-                    <div class="matrix-cell neutral">1.0x</div>
-                    <div class="matrix-cell good">1.2x</div>
-                    <div class="matrix-cell good">1.7x</div>
-                    <div class="matrix-cell bad">0.6x</div>
-                    <div class="matrix-cell neutral">1.1x</div>
-                    <div class="matrix-cell neutral">1.1x</div>
-                    
-                    <div class="matrix-header">Jeu posé</div>
-                    <div class="matrix-cell neutral">1.1x</div>
-                    <div class="matrix-cell neutral">1.0x</div>
-                    <div class="matrix-cell bad">0.9x</div>
-                    <div class="matrix-cell good">1.5x</div>
-                    <div class="matrix-cell bad">0.7x</div>
-                    <div class="matrix-cell neutral">1.0x</div>
-                    
-                    <div class="matrix-header">Rebond offensif</div>
-                    <div class="matrix-cell good">1.3x</div>
-                    <div class="matrix-cell good">1.1x</div>
-                    <div class="matrix-cell bad">0.8x</div>
-                    <div class="matrix-cell neutral">1.0x</div>
-                    <div class="matrix-cell good">1.4x</div>
-                    <div class="matrix-cell neutral">0.9x</div>
-                    
-                    <div class="matrix-header">Contre-attaque</div>
-                    <div class="matrix-cell neutral">1.2x</div>
-                    <div class="matrix-cell good">1.9x</div>
-                    <div class="matrix-cell good">1.3x</div>
-                    <div class="matrix-cell neutral">1.1x</div>
-                    <div class="matrix-cell neutral">1.0x</div>
-                    <div class="matrix-cell bad">0.8x</div>
-                </div>
-            </div>
-
-            <!-- Info Box -->
-            <div class="info-box">
-                <h3>ℹ️ Conseils Stratégiques</h3>
-                <ul>
-                    <li><strong>Tir à 3 points</strong> est très efficace contre <strong>Défense intérieur</strong> (1.8x)</li>
-                    <li><strong>Jeu intérieur</strong> est très efficace contre <strong>Agressivité extérieur</strong> (1.6x)</li>
-                    <li><strong>Jeu rapide</strong> est très efficace contre <strong>Rebond défensif</strong> (1.7x)</li>
-                    <li><strong>Jeu posé</strong> est très efficace contre <strong>Défense de zone</strong> (1.5x)</li>
-                    <li><strong>Contre-attaque</strong> est très efficace contre <strong>Agressivité extérieur</strong> (1.9x)</li>
-                    <li>Évitez les combinaisons avec un coefficient <strong>inférieur à 0.8x</strong> (en rouge)</li>
-                </ul>
-            </div>
-
-            <!-- Actions -->
-            <div class="actions">
-                <button class="btn btn-primary" onclick="saveTactics()">💾 Sauvegarder les Tactiques</button>
-                <button class="btn btn-secondary" onclick="resetTactics()">🔄 Réinitialiser</button>
-                <button class="btn btn-secondary" onclick="showTacticsJSON()">📋 Voir le JSON</button>
-            </div>
-        </div>
+<div class="app">
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">NBA MANAGER</div>
+      <h1 id="teamTitle">Choix du match</h1>
+      <p class="subtitle">Prépare ton équipe avant le coup d'envoi.</p>
     </div>
+    <div class="match-info">
+      <span id="homeHeader">—</span>
+      <strong>VS</strong>
+      <span id="awayHeader">—</span>
+    </div>
+  </header>
 
-    <script>
-        // Matrice d'interaction (copie de tactics_v2.py)
-        const ATTACK_DEFENSE_MATRIX = {
-            "Tir à 3 points": {
-                "Défense intérieur": 1.8, "Agressivité extérieur": 0.6, "Rebond défensif": 1.0,
-                "Défense de zone": 1.2, "Défense H2H": 1.0, "Contre": 0.7
-            },
-            "Jeu intérieur": {
-                "Défense intérieur": 0.7, "Agressivité extérieur": 1.6, "Rebond défensif": 1.1,
-                "Défense de zone": 0.9, "Défense H2H": 1.2, "Contre": 0.5
-            },
-            "Jeu rapide": {
-                "Défense intérieur": 1.0, "Agressivité extérieur": 1.2, "Rebond défensif": 1.7,
-                "Défense de zone": 0.6, "Défense H2H": 1.1, "Contre": 1.1
-            },
-            "Jeu posé": {
-                "Défense intérieur": 1.1, "Agressivité extérieur": 1.0, "Rebond défensif": 0.9,
-                "Défense de zone": 1.5, "Défense H2H": 0.7, "Contre": 1.0
-            },
-            "Rebond offensif": {
-                "Défense intérieur": 1.3, "Agressivité extérieur": 1.1, "Rebond défensif": 0.8,
-                "Défense de zone": 1.0, "Défense H2H": 1.4, "Contre": 0.9
-            },
-            "Contre-attaque": {
-                "Défense intérieur": 1.2, "Agressivité extérieur": 1.9, "Rebond défensif": 1.3,
-                "Défense de zone": 1.1, "Défense H2H": 1.0, "Contre": 0.8
-            }
-        };
+  <main>
+    <section class="setup-card card">
+      <div class="setup-title">
+        <h2>Choisir le match</h2>
+        <p>Les deux équipes sont choisies avant la préparation. Le match sera ensuite entièrement verrouillé.</p>
+      </div>
+      <div class="team-select-grid">
+        <label class="field card"><span>Mon équipe</span><select id="userTeamSelect"></select></label>
+        <label class="field card"><span>Adversaire</span><select id="opponentTeamSelect"></select></label>
+      </div>
+      <div id="teamAvailability" class="warning hidden"></div>
+    </section>
 
-        const FOCUS_WEIGHTS = {
-            primary: 0.50,
-            secondary: 0.30,
-            tertiary: 0.20
-        };
+    <nav class="tabs" aria-label="Navigation préparation">
+      <button class="tab active" data-tab="rotations">ROTATIONS</button>
+      <button class="tab" data-tab="tactiques">TACTIQUES</button>
+      <button class="tab" data-tab="effectif">EFFECTIF</button>
+    </nav>
 
-        // Options disponibles
-        const ATTACK_OPTIONS = [
-            "Tir à 3 points", "Jeu intérieur", "Jeu rapide", "Jeu posé", "Rebond offensif", "Contre-attaque"
-        ];
+    <section id="rotations" class="tab-panel active">
+      <div class="section-heading">
+        <div>
+          <h2>Rotation & 5 majeur</h2>
+          <p>Tout l'effectif est disponible. Choisis les cinq titulaires et répartis les 240 minutes. Un joueur à 0 min est hors rotation.</p>
+        </div>
+        <div class="rotation-tools">
+          <button id="autoMinutesButton" class="secondary-button">↺ Répartition auto</button>
+          <div class="minute-total" id="minuteTotal">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="rotation-table-head">
+          <div>5 MAJEUR</div><div>JOUEUR</div><div>POSTE</div><div>PROFIL / OVR</div><div>RÔLE NATUREL</div><div>MIN</div>
+        </div>
+        <div id="rotationList" class="rotation-manager-list"></div>
+      </div>
+      <div class="card pregame-timeline-card">
+        <div class="pregame-timeline-heading">
+          <div>
+            <h3>Timeline prévue avant le match</h3>
+            <p>Projection de ta rotation à partir des minutes que tu as définies. Chaque colonne = 1 minute ; une colonne montre les 5 joueurs qui devraient être ensemble.</p>
+          </div>
+          <button id="refreshPreviewButton" class="secondary-button">↻ Actualiser</button>
+        </div>
+        <div id="pregameTimeline" class="pregame-timeline">
+          <div class="timeline-empty">Configure les minutes pour afficher la projection.</div>
+        </div>
+      </div>
 
-        const DEFENSE_OPTIONS = [
-            "Défense intérieur", "Agressivité extérieur", "Rebond défensif", "Défense de zone", "Défense H2H", "Contre"
-        ];
+      <div class="position-coverage" id="positionCoverage"></div>
 
-        // Calculer l'efficacité tactique
-        function calculateEfficiency() {
-            const attackFocuses = [
-                document.getElementById('attackFocus1').value,
-                document.getElementById('attackFocus2').value,
-                document.getElementById('attackFocus3').value
-            ];
+      <div class="card rotation-summary">
+        <div><h3>Plan de match</h3><p>Une fois lancé, la rotation et les tactiques sont verrouillées.</p></div>
+        <div id="rotationWarning" class="warning hidden"></div>
+      </div>
+    </section>
 
-            const defenseFocuses = [
-                document.getElementById('defenseFocus1').value,
-                document.getElementById('defenseFocus2').value,
-                document.getElementById('defenseFocus3').value
-            ];
+    <section id="tactiques" class="tab-panel">
+      <div class="section-heading"><div><h2>Tactiques</h2><p>Les choix modifient réellement le comportement du moteur.</p></div></div>
+      <div class="tactics-group-title">OFFENSIF</div>
+      <div class="tactics-grid">
+        <label class="card field"><span>Style offensif</span><select id="offenseStyle"><option>Équilibré</option><option>Pace & Space</option><option>Jeu intérieur</option><option>Adresse extérieure</option><option>Motion</option><option>Isolation</option></select></label>
+        <label class="card field"><span>Tempo</span><select id="tempo"><option>Lent</option><option selected>Normal</option><option>Rapide</option></select></label>
+        <label class="card field"><span>Tirs à 3 pts</span><select id="threePointFocus"><option>Limité</option><option selected>Équilibré</option><option>Accentué</option></select></label>
+        <label class="card field"><span>Mouvement de balle</span><select id="ballMovement"><option>Statique</option><option selected>Équilibré</option><option>Très collectif</option></select></label>
+        <label class="card field"><span>Transition offensive</span><select id="transitionOffense"><option>Repli</option><option selected>Équilibrée</option><option>Agressive</option></select></label>
+        <label class="card field"><span>Pick-and-roll</span><select id="pickAndRollFrequency"><option>Rare</option><option selected>Normal</option><option>Fréquent</option></select></label>
+        <label class="card field"><span>Post-up</span><select id="postUpFrequency"><option>Rare</option><option selected>Normal</option><option>Fréquent</option></select></label>
+        <label class="card field"><span>Drives</span><select id="driveFrequency"><option>Rare</option><option selected>Normal</option><option>Fréquent</option></select></label>
+        <label class="card field"><span>Option principale</span><select id="primaryOption"><option selected>Équilibrée</option><option>Meilleur scoreur</option><option>Créateur principal</option><option>Jeu intérieur</option></select></label>
+        <label class="card field"><span>Sélection de tirs</span><select id="shotSelection"><option>Sélective</option><option selected>Normale</option><option>Agressive</option></select></label>
+        <label class="card field"><span>Rebond offensif</span><select id="offensiveRebound"><option>Prudent</option><option selected>Normal</option><option>Agressif</option></select></label>
+      </div>
+      <div class="tactics-group-title">DÉFENSIF</div>
+      <div class="tactics-grid">
+        <label class="card field"><span>Système défensif</span><select id="defenseStyle"><option>Homme à homme</option><option>Zone</option><option>Agressive</option><option>Repli rapide</option></select></label>
+        <label class="card field"><span>Pression sur porteur</span><select id="pressure"><option>Faible</option><option selected>Normale</option><option>Forte</option></select></label>
+        <label class="card field"><span>Aide défensive</span><select id="helpDefense"><option>Faible</option><option selected>Normale</option><option>Forte</option></select></label>
+        <label class="card field"><span>Pick-and-roll défensif</span><select id="pickAndRollCoverage"><option selected>Drop</option><option>Switch</option><option>Hedge</option></select></label>
+        <label class="card field"><span>Priorité défensive</span><select id="defensivePriority"><option selected>Équilibrée</option><option>Limiter 3 pts</option><option>Protéger peinture</option></select></label>
+        <label class="card field"><span>Défense de transition</span><select id="transitionDefense"><option selected>Équilibré</option><option>Repli rapide</option><option>Crash offensif autorisé</option></select></label>
+        <label class="card field"><span>Rebond défensif</span><select id="defensiveRebound"><option selected>Équilibré</option><option>Sécuriser</option><option>Agressif</option></select></label>
+        <label class="card field"><span>Agressivité / fautes</span><select id="foulAggression"><option>Disciplinée</option><option selected>Normale</option><option>Agressive</option></select></label>
+      </div>
+    </section>
 
-            const weights = [FOCUS_WEIGHTS.primary, FOCUS_WEIGHTS.secondary, FOCUS_WEIGHTS.tertiary];
-            let efficiency = 0;
+    <section id="effectif" class="tab-panel">
+      <div class="section-heading"><div><h2 id="rosterTitle">Effectif</h2><p>Les joueurs disponibles dans la base locale.</p></div></div>
+      <div class="card table-card"><table><thead><tr><th>Joueur</th><th>Pos.</th><th>OVR</th><th>Ext.</th><th>Int.</th><th>Athl.</th><th>Créa.</th><th>Déf.</th><th>Reb.</th><th>Sta.</th><th>Rôle naturel</th></tr></thead><tbody id="rosterTable"></tbody></table></div>
+    </section>
+  </main>
 
-            for (let i = 0; i < 3; i++) {
-                const attack = attackFocuses[i];
-                const defense = defenseFocuses[i];
-                if (ATTACK_DEFENSE_MATRIX[attack] && ATTACK_DEFENSE_MATRIX[attack][defense]) {
-                    efficiency += ATTACK_DEFENSE_MATRIX[attack][defense] * weights[i];
-                }
-            }
+  <footer class="actionbar">
+    <div><strong id="footerTeam">—</strong><span id="footerOpponent">Adversaire : —</span></div>
+    <button id="launchButton" class="launch-button" disabled>▶ LANCER LE MATCH</button>
+  </footer>
 
-            return efficiency;
-        }
-
-        // Mettre à jour l'affichage de l'efficacité
-        function updateEfficiencyDisplay() {
-            const efficiency = calculateEfficiency();
-            const efficiencyValue = document.getElementById('efficiencyValue');
-            const efficiencyDescription = document.getElementById('efficiencyDescription');
-
-            efficiencyValue.textContent = efficiency.toFixed(2) + 'x';
-
-            // Changer la couleur selon l'efficacité
-            efficiencyValue.className = 'efficiency-value';
-            if (efficiency > 1.5) {
-                efficiencyValue.classList.add('efficiency-good');
-                efficiencyDescription.textContent = 'Excellent choix ! Attaque très efficace contre cette défense.';
-            } else if (efficiency > 1.2) {
-                efficiencyValue.classList.add('efficiency-good');
-                efficiencyDescription.textContent = 'Bon choix ! Attaque efficace contre cette défense.';
-            } else if (efficiency > 0.8) {
-                efficiencyValue.classList.add('efficiency-neutral');
-                efficiencyDescription.textContent = 'Combinaison neutre. Ni avantage ni désavantage majeur.';
-            } else if (efficiency > 0.6) {
-                efficiencyValue.classList.add('efficiency-bad');
-                efficiencyDescription.textContent = 'Mauvais choix. La défense contrarie bien votre attaque.';
-            } else {
-                efficiencyValue.classList.add('efficiency-bad');
-                efficiencyDescription.textContent = 'Très mauvais choix ! Changez votre stratégie.';
-            }
-        }
-
-        // Sauvegarder les tactiques (à adapter selon ton backend)
-        function saveTactics() {
-            const tactics = {
-                attackFocus1: document.getElementById('attackFocus1').value,
-                attackFocus2: document.getElementById('attackFocus2').value,
-                attackFocus3: document.getElementById('attackFocus3').value,
-                defenseFocus1: document.getElementById('defenseFocus1').value,
-                defenseFocus2: document.getElementById('defenseFocus2').value,
-                defenseFocus3: document.getElementById('defenseFocus3').value
-            };
-
-            // Stocker dans localStorage
-            localStorage.setItem('nbaManagerTactics', JSON.stringify(tactics));
-            
-            // Afficher un message
-            alert('✅ Tactiques sauvegardées !\n\nCes tactiques seront utilisées pour le prochain match.');
-            
-            // Tu peux aussi envoyer au serveur ici si ton interface est connectée
-            // Exemple: sendTacticsToServer(tactics);
-        }
-
-        // Réinitialiser les tactiques
-        function resetTactics() {
-            document.getElementById('attackFocus1').value = 'Tir à 3 points';
-            document.getElementById('attackFocus2').value = 'Jeu intérieur';
-            document.getElementById('attackFocus3').value = 'Jeu posé';
-            document.getElementById('defenseFocus1').value = 'Défense intérieur';
-            document.getElementById('defenseFocus2').value = 'Agressivité extérieur';
-            document.getElementById('defenseFocus3').value = 'Rebond défensif';
-            updateEfficiencyDisplay();
-        }
-
-        // Charger les tactiques sauvegardées
-        function loadTactics() {
-            const savedTactics = localStorage.getItem('nbaManagerTactics');
-            if (savedTactics) {
-                const tactics = JSON.parse(savedTactics);
-                if (tactics.attackFocus1) document.getElementById('attackFocus1').value = tactics.attackFocus1;
-                if (tactics.attackFocus2) document.getElementById('attackFocus2').value = tactics.attackFocus2;
-                if (tactics.attackFocus3) document.getElementById('attackFocus3').value = tactics.attackFocus3;
-                if (tactics.defenseFocus1) document.getElementById('defenseFocus1').value = tactics.defenseFocus1;
-                if (tactics.defenseFocus2) document.getElementById('defenseFocus2').value = tactics.defenseFocus2;
-                if (tactics.defenseFocus3) document.getElementById('defenseFocus3').value = tactics.defenseFocus3;
-            }
-        }
-
-        // Afficher le JSON des tactiques (pour débogage ou intégration)
-        function showTacticsJSON() {
-            const tactics = {
-                attackFocus1: document.getElementById('attackFocus1').value,
-                attackFocus2: document.getElementById('attackFocus2').value,
-                attackFocus3: document.getElementById('attackFocus3').value,
-                defenseFocus1: document.getElementById('defenseFocus1').value,
-                defenseFocus2: document.getElementById('defenseFocus2').value,
-                defenseFocus3: document.getElementById('defenseFocus3').value
-            };
-
-            const jsonString = JSON.stringify(tactics, null, 2);
-            alert('JSON à envoyer au serveur:\n\n' + jsonString);
-            console.log('Tactics JSON:', tactics);
-        }
-
-        // Fonction pour envoyer au serveur (à adapter)
-        function sendTacticsToServer(tactics) {
-            // Exemple avec fetch (à adapter selon ton API)
-            fetch('/api/save-tactics', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    team_id: 'TON_EQUIPE_ID',
-                    tactics: tactics
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('✅ Tactiques envoyées au serveur !');
-                } else {
-                    alert('❌ Erreur: ' + (data.message || 'Unknown error'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('❌ Erreur de connexion au serveur');
-            });
-        }
-
-        // Initialisation
-        document.addEventListener('DOMContentLoaded', function() {
-            // Charger les tactiques sauvegardées
-            loadTactics();
-            
-            // Mettre à jour l'efficacité
-            updateEfficiencyDisplay();
-            
-            // Ajouter des écouteurs sur les sélecteurs
-            const selectors = [
-                'attackFocus1', 'attackFocus2', 'attackFocus3',
-                'defenseFocus1', 'defenseFocus2', 'defenseFocus3'
-            ];
-            
-            selectors.forEach(id => {
-                document.getElementById(id).addEventListener('change', updateEfficiencyDisplay);
-            });
-        });
-    </script>
+  <div id="matchOverlay" class="overlay hidden">
+    <div class="match-screen">
+      <div class="locked-banner">🔒 MATCH TERMINÉ — Résultats</div>
+      <div class="final-score">
+        <div class="team-score-block"><small id="homeTeamName">—</small><strong id="homeScore">0</strong></div>
+        <div class="final-score-separator">-</div>
+        <div class="team-score-block"><small id="awayTeamName">—</small><strong id="awayScore">0</strong></div>
+      </div>
+      <div class="result-tabs">
+        <button class="result-tab active" data-result-tab="summaryResult">RÉSULTATS</button>
+        <button class="result-tab" data-result-tab="timelineResult">TIMELINE DES ROTATIONS</button>
+      </div>
+      <div id="summaryResult" class="result-panel active"><div id="resultsContent" class="results-content"></div></div>
+      <div id="timelineResult" class="result-panel"><div id="timelineContent" class="timeline-content"></div></div>
+      <button id="closeMatch" class="secondary-button">← Retour à la préparation</button>
+    </div>
+  </div>
+</div>
+<script src="app.js?v=38"></script>
 </body>
 </html>
