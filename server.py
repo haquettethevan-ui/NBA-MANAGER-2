@@ -17,6 +17,9 @@ from main import (
     REQUIRED_POSITIONS,
     eligible_positions,
 )
+from tactics_v2 import (
+    ATTACK_FOCUS_OPTIONS, DEFENSE_FOCUS_OPTIONS,
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
@@ -252,6 +255,16 @@ def ai_tactics(team):
     elif inside >= outside - 2:
         tactics["offenseStyle"] = "Jeu intérieur"
         tactics["postUpFrequency"] = "Fréquent"
+    # =========================================================
+    # NOUVELLE MECANIQUE: Ajouter les 6 focus pour l'IA
+    # =========================================================
+    tactics["attackFocus1"] = "Jeu rapide" if outside >= 75 else "Jeu intérieur"
+    tactics["attackFocus2"] = "Tir à 3 points" if outside >= 70 else "Jeu posé"
+    tactics["attackFocus3"] = "Contre-attaque" if inside >= 75 else "Rebond offensif"
+    tactics["defenseFocus1"] = "Défense intérieur" if inside >= 75 else "Agressivité extérieur"
+    tactics["defenseFocus2"] = "Rebond défensif" if sum(p.rebounding for p in team.starters) / 5 >= 75 else "Défense de zone"
+    tactics["defenseFocus3"] = "Contre" if sum(p.defense for p in team.starters) / 5 >= 75 else "Défense H2H"
+    
     return tactics
 
 
